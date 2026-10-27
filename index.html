@@ -161,8 +161,6 @@ section,.q,.mtx tr{scroll-margin-top:130px}
 .paged .nav-btns{display:flex}
 .btn.nav{background:#fff;border:1.5px solid var(--line);color:var(--ink);padding:12px 14px}
 .btn.next{background:var(--c-next,var(--green));color:#fff}
-.paged #saveBtn{display:none}
-.paged.last #saveBtn{display:inline-block}
 .paged.last #nextBtn{display:none}
 .mode-btn{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer}
 .step-title{display:none}
@@ -207,11 +205,12 @@ details.intro-more summary{cursor:pointer;font-weight:700;color:var(--green);pad
   .actions .msg{flex-basis:100%;order:-1;font-size:12px}
   .actions .btn{flex:1;padding:13px 8px;font-size:15px}
   .actions .btn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-  .paged .actions #clearBtn{flex:0 0 auto;padding:13px 12px;font-size:14px}
+  .paged .actions #clearBtn{display:none}
+  .paged .actions #saveBtn{flex:0 0 auto;padding:13px 14px}
   .paged .nav-btns{flex:1;min-width:0}
   .paged .nav-btns .btn{flex:1}
   .paged .nav-btns #prevBtn{flex:0 0 auto;padding:13px 12px}
-  .paged.last #saveBtn{flex:1}
+  .paged.last .actions #saveBtn{flex:1}
   .paged.last .nav-btns{flex:0 0 auto}
   .toast{bottom:calc(130px + env(safe-area-inset-bottom));font-size:14.5px}
 }
@@ -430,6 +429,7 @@ function render(){
     </div>
     <div class="q"><h3>Observações do entrevistador</h3><textarea name="obs_entrevistador"></textarea></div>
     <div class="q"><div class="fields"><label class="f">Revisor(a)<input type="text" name="revisor"></label><label class="f">Data da revisão<input type="date" name="data_revisao"></label></div></div>
+    <div class="q"><button type="button" class="btn sec" id="clearBtn2">Limpar esta entrevista e começar outra</button></div>
     </div></section>`;
   f.innerHTML = html;
 }
@@ -629,6 +629,7 @@ form().querySelector('[name=data_entrevista]').value=new Date().toISOString().sl
 form().addEventListener("change",()=>{ updateUI(); saveDraft(); });
 form().addEventListener("input",e=>{ if(e.target.matches("input[type=text],input[type=tel],textarea")) saveDraft(); });
 document.getElementById("saveBtn").onclick=onSave;
+document.getElementById("clearBtn2").onclick=()=>document.getElementById("clearBtn").click();
 document.getElementById("clearBtn").onclick=()=>{ if(confirm("Apagar as respostas desta entrevista (não afeta as já salvas)?")) resetForm(true); };
 syncBtn.onclick=()=>syncAll(true);
 window.addEventListener("online",()=>{ setNet(); syncAll(); });
@@ -660,6 +661,10 @@ function goStep(i, scroll=true){
   document.body.classList.toggle("last",PAGED && CUR===STEPS.length-1);
   prevBtn.disabled = CUR===0;
   const nxt=STEPS[CUR+1]; nextBtn.textContent = nxt ? `${STEP_NAMES[nxt.dataset.secn]} ›` : "Próxima ›";
+  const narrow = window.matchMedia("(max-width:760px)").matches;
+  prevBtn.textContent = narrow ? "‹ Voltar" : "‹ Anterior";
+  if(narrow) nextBtn.textContent = "Próxima ›";
+  document.getElementById("saveBtn").textContent = (narrow && CUR!==STEPS.length-1) ? "Salvar" : "Salvar entrevista";
   nextBtn.style.setProperty("--c-next", nxt?STEP_COLORS[nxt.dataset.secn]:"var(--green)");
   refreshSteps();
   const chip=stepsIn.querySelector(`.step[data-i="${CUR}"]`); if(chip) chip.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"});
